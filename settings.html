@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPE Detect AI - Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0,1"
+        rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { primary: '#ec5b13' }, fontFamily: { display: ['Space Grotesk', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(236, 91, 19, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dark .glass-card {
+            background: rgba(34, 22, 16, 0.7);
+            border-color: rgba(236, 91, 19, 0.2);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ec5b13, #f97316, #fb923c, #f59e0b);
+            background-size: 400% 400%;
+            animation: grad 15s ease infinite;
+        }
+
+        @keyframes grad {
+            0% {
+                background-position: 0% 50%
+            }
+
+            50% {
+                background-position: 100% 50%
+            }
+
+            100% {
+                background-position: 0% 50%
+            }
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #cbd5e1;
+            transition: .3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        .toggle input:checked+.toggle-slider {
+            background: #ec5b13;
+        }
+
+        .toggle input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(236, 91, 19, 0.08);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 font-display text-slate-900 dark:text-white min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-72 glass-card m-4 rounded-3xl flex flex-col h-[calc(100vh-2rem)] shrink-0">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center text-white shadow-xl">
+                    <span class="material-symbols-outlined text-2xl">shield_person</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl">PPE Detect AI</h1>
+                    <p class="text-xs text-slate-500">Enterprise Security</p>
+                </div>
+            </div>
+            <div class="px-4 mb-4">
+                <div class="flex items-center gap-3 p-3 rounded-2xl bg-primary/10">
+                    <div
+                        class="w-11 h-11 rounded-xl gradient-bg flex items-center justify-center text-white font-bold text-sm">
+                        {{ user.get('avatar','?') }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm">{{ user.get('name','User') }}</p>
+                        <p class="text-xs text-slate-500">{{ user.get('role','Member') }}</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
+                <a href="/"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">dashboard</span><span
+                        class="font-medium text-sm">Dashboard</span></a>
+                <a href="/live-cameras"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">videocam</span><span class="font-medium text-sm">Live
+                        Cameras</span></a>
+                <a href="/analytics"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">insights</span><span
+                        class="font-medium text-sm">Analytics</span></a>
+                <a href="/incident-log"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">history</span><span
+                        class="font-medium text-sm">Incident Log</span></a>
+                <a href="/team"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">groups</span><span
+                        class="font-medium text-sm">Team</span></a>
+                <a href="/circulars"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">campaign</span><span
+                        class="font-medium text-sm">Circulars</span></a>
+                <div class="pt-4 pb-1 px-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Configuration
+                </div>
+                <a href="/settings"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl gradient-bg text-white shadow-lg"><span
+                        class="material-symbols-outlined text-xl">settings</span><span
+                        class="font-semibold text-sm">Settings</span></a>
+                {% if user.get('permission') == 'Admin' %}
+                <a href="/user-management"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"><span
+                        class="material-symbols-outlined text-xl">admin_panel_settings</span><span
+                        class="font-medium text-sm">User Management</span></a>
+                {% endif %}
+            </nav>
+            <div class="p-4 border-t border-primary/10 flex gap-3">
+                <button onclick="toggleDarkMode()"
+                    class="flex-1 p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center justify-center gap-1 text-sm font-medium">
+                    <span class="material-symbols-outlined text-base" id="theme-icon">dark_mode</span>Toggle
+                </button>
+                <a href="/logout"
+                    class="flex-1 p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center justify-center gap-1 text-sm font-medium">
+                    <span class="material-symbols-outlined text-base">logout</span>Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+            <div class="mb-8" data-aos="fade-down">
+                <h1
+                    class="text-3xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
+                    Settings</h1>
+                <p class="text-sm text-slate-500 mt-1">Manage detection, notifications, and system preferences</p>
+            </div>
+
+            <div class="max-w-3xl space-y-6">
+
+                <!-- Detection Settings -->
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="50">
+                    <h2 class="font-bold text-lg flex items-center gap-2 mb-5">
+                        <span class="material-symbols-outlined text-primary">tune</span>Detection Settings
+                    </h2>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Confidence Threshold</p>
+                            <p class="text-xs text-slate-500">Minimum confidence for a detection to be counted</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="range" min="0" max="100"
+                                value="{{ (settings.confidence * 100)|int if settings else 85 }}" id="conf-slider"
+                                oninput="document.getElementById('conf-val').textContent=this.value+'%'"
+                                class="w-28 accent-primary">
+                            <span class="text-primary font-bold text-sm w-10" id="conf-val">{{ (settings.confidence *
+                                100)|int if settings else 85 }}%</span>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Detect Hard Hats</p>
+                            <p class="text-xs text-slate-500">Identify workers wearing safety helmets</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="detect-helmet" {{ 'checked' if not settings or
+                                settings.get('detect_helmet', True) }}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Detect Safety Vests</p>
+                            <p class="text-xs text-slate-500">High-visibility vest detection</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="detect-vest" {{ 'checked' if not settings or
+                                settings.get('detect_vest', True) }}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Detect Gloves</p>
+                            <p class="text-xs text-slate-500">Hand protection compliance</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="detect-gloves" {{ 'checked' if settings and
+                                settings.get('detect_gloves') }}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Detect Masks</p>
+                            <p class="text-xs text-slate-500">Respiratory protection detection</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="detect-mask" {{ 'checked' if settings and
+                                settings.get('detect_mask') }}><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="flex gap-3 mt-4">
+                        <button onclick="saveDetectionSettings()"
+                            class="gradient-bg text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl transition-all">Save
+                            Changes</button>
+                        <button onclick="resetDetection()"
+                            class="bg-slate-100 dark:bg-slate-800 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="100">
+                    <h2 class="font-bold text-lg flex items-center gap-2 mb-5">
+                        <span class="material-symbols-outlined text-primary">notifications</span>Notifications
+                    </h2>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Browser Push Notifications</p>
+                            <p class="text-xs text-slate-500">Receive alerts even when the tab is in the background</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="push-notif-toggle"
+                                onchange="togglePushNotifications(this)"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Violation Alerts</p>
+                            <p class="text-xs text-slate-500">Notify immediately when a PPE violation is detected</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="alert-violations" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Circular Notifications</p>
+                            <p class="text-xs text-slate-500">Notify when admin publishes a new circular</p>
+                        </div>
+                        <label class="toggle"><input type="checkbox" id="alert-circulars" checked><span
+                                class="toggle-slider"></span></label>
+                    </div>
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-start gap-2 mt-2"
+                        id="push-status-box">
+                        <span class="material-symbols-outlined text-blue-500 text-lg mt-0.5">info</span>
+                        <p class="text-xs text-blue-700 dark:text-blue-300" id="push-status-text">Enable push
+                            notifications to receive alerts outside this tab.</p>
+                    </div>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="150">
+                    <h2 class="font-bold text-lg flex items-center gap-2 mb-5">
+                        <span class="material-symbols-outlined text-primary">manage_accounts</span>Account
+                    </h2>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Display Name</p>
+                            <p class="text-xs text-slate-500">Your name shown across the system</p>
+                        </div>
+                        <input type="text" value="{{ user.get('name','') }}" id="display-name"
+                            class="w-44 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-primary">
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Email Address</p>
+                            <p class="text-xs text-slate-500">Account login email</p>
+                        </div>
+                        <input type="email" value="{{ user.get('email','') }}" id="account-email"
+                            class="w-44 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-primary">
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <p class="font-semibold text-sm">Language</p>
+                            <p class="text-xs text-slate-500">UI language preference</p>
+                        </div>
+                        <select id="language"
+                            class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                            <option value="ta">Tamil</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-3 mt-4">
+                        <button onclick="saveAccountSettings()"
+                            class="gradient-bg text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl transition-all">Save
+                            Profile</button>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="200">
+                    <h2 class="font-bold text-lg flex items-center gap-2 mb-5">
+                        <span class="material-symbols-outlined text-primary">lock</span>Security
+                    </h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-sm font-semibold mb-1 block">Current Password</label>
+                            <input type="password" id="current-password" placeholder="Enter current password"
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="text-sm font-semibold mb-1 block">New Password</label>
+                            <input type="password" id="new-password" placeholder="Enter new password"
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="text-sm font-semibold mb-1 block">Confirm New Password</label>
+                            <input type="password" id="confirm-password" placeholder="Confirm new password"
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
+                    <button onclick="changePassword()"
+                        class="mt-4 gradient-bg text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl transition-all">Update
+                        Password</button>
+                </div>
+
+                <!-- System Info -->
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="250">
+                    <h2 class="font-bold text-lg flex items-center gap-2 mb-5">
+                        <span class="material-symbols-outlined text-primary">computer</span>System Info
+                    </h2>
+                    <div class="grid grid-cols-2 gap-4" id="system-info-grid">
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <p class="text-xs text-slate-400">CPU Usage</p>
+                            <p class="font-bold text-lg" id="cpu-use">--</p>
+                        </div>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <p class="text-xs text-slate-400">Memory</p>
+                            <p class="font-bold text-lg" id="mem-use">--</p>
+                        </div>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <p class="text-xs text-slate-400">GPU</p>
+                            <p class="font-bold text-sm" id="gpu-name">--</p>
+                        </div>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                            <p class="text-xs text-slate-400">Current FPS</p>
+                            <p class="font-bold text-lg" id="fps-val">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 700, once: true });
+
+        // Theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') { document.documentElement.classList.add('dark'); document.getElementById('theme-icon').textContent = 'light_mode'; }
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) { html.classList.remove('dark'); icon.textContent = 'dark_mode'; localStorage.setItem('theme', 'light'); }
+            else { html.classList.add('dark'); icon.textContent = 'light_mode'; localStorage.setItem('theme', 'dark'); }
+        }
+
+        // Toast
+        function toast(msg, type = 'success') {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
+            t.className = `${colors[type] || 'bg-slate-700'} text-white px-5 py-3 rounded-xl font-bold text-sm shadow-xl`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        // Detection settings
+        function saveDetectionSettings() {
+            const data = {
+                detection: {
+                    confidence: document.getElementById('conf-slider').value / 100,
+                    detect_helmet: document.getElementById('detect-helmet').checked,
+                    detect_vest: document.getElementById('detect-vest').checked,
+                    detect_gloves: document.getElementById('detect-gloves').checked,
+                    detect_mask: document.getElementById('detect-mask').checked,
+                }
+            };
+            fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+                .then(r => r.json()).then(d => { if (d.success) toast('Detection settings saved!'); });
+        }
+        function resetDetection() {
+            document.getElementById('conf-slider').value = 85;
+            document.getElementById('conf-val').textContent = '85%';
+            document.getElementById('detect-helmet').checked = true;
+            document.getElementById('detect-vest').checked = true;
+            document.getElementById('detect-gloves').checked = false;
+            document.getElementById('detect-mask').checked = false;
+            toast('Reset to defaults', 'info');
+        }
+
+        // Account settings
+        function saveAccountSettings() {
+            const data = { name: document.getElementById('display-name').value, email: document.getElementById('account-email').value };
+            fetch('/profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+                .then(r => r.json()).then(d => { if (d.success) toast('Profile updated!'); else toast('Update failed', 'error'); });
+        }
+
+        // Password change
+        function changePassword() {
+            const cur = document.getElementById('current-password').value;
+            const nw = document.getElementById('new-password').value;
+            const conf = document.getElementById('confirm-password').value;
+            if (!cur || !nw) return toast('Please fill all fields', 'error');
+            if (nw !== conf) return toast('Passwords do not match', 'error');
+            if (nw.length < 6) return toast('Password must be at least 6 characters', 'error');
+            fetch('/api/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ current: cur, new_password: nw }) })
+                .then(r => r.json()).then(d => {
+                    if (d.success) { toast('Password changed!');['current-password', 'new-password', 'confirm-password'].forEach(id => document.getElementById(id).value = ''); }
+                    else toast(d.message || 'Failed', 'error');
+                });
+        }
+
+        // Push notifications
+        async function togglePushNotifications(el) {
+            if (el.checked) {
+                if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                    toast('Push notifications not supported in this browser', 'error');
+                    el.checked = false; return;
+                }
+                const perm = await Notification.requestPermission();
+                if (perm !== 'granted') { toast('Notification permission denied', 'error'); el.checked = false; return; }
+                document.getElementById('push-status-text').textContent = '✅ Push notifications enabled! You will receive alerts even when this tab is inactive.';
+                toast('Push notifications enabled!', 'success');
+                // Register sw and subscribe
+                try {
+                    const reg = await navigator.serviceWorker.register('/static/sw.js');
+                    await navigator.serviceWorker.ready;
+                    toast('Background notifications active!', 'success');
+                } catch (e) { console.warn('SW registration:', e); }
+            } else {
+                document.getElementById('push-status-text').textContent = 'Enable push notifications to receive alerts outside this tab.';
+            }
+        }
+
+        // Load system info
+        function loadSystemInfo() {
+            fetch('/api/system-info').then(r => r.json()).then(d => {
+                document.getElementById('cpu-use').textContent = d.cpu_percent + '%';
+                document.getElementById('mem-use').textContent = d.memory_percent + '%';
+                document.getElementById('gpu-name').textContent = d.gpu_name || 'CPU Only';
+                document.getElementById('fps-val').textContent = (d.fps || 0) + ' FPS';
+            }).catch(() => { });
+        }
+        loadSystemInfo();
+        setInterval(loadSystemInfo, 5000);
+
+        // Check push permission on load
+        if ('Notification' in window && Notification.permission === 'granted') {
+            document.getElementById('push-notif-toggle').checked = true;
+            document.getElementById('push-status-text').textContent = '✅ Push notifications are active.';
+        }
+    </script>
+</body>
+
+</html>

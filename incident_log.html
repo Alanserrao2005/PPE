@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPE Detect AI - Incident Log</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <!-- AOS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ec5b13, #f97316, #fb923c, #f59e0b);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(236, 91, 19, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dark .glass-card {
+            background: rgba(34, 22, 16, 0.7);
+            border-color: rgba(236, 91, 19, 0.2);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .severity-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .severity-medium {
+            background: rgba(249, 115, 22, 0.2);
+            color: #f97316;
+        }
+
+        .severity-low {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-resolved {
+            background: rgba(100, 116, 139, 0.2);
+            color: #64748b;
+        }
+
+        .table-row {
+            transition: all 0.2s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(236, 91, 19, 0.05);
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { primary: '#ec5b13' },
+                    fontFamily: { display: ['Space Grotesk', 'sans-serif'] },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-80 glass-card m-4 rounded-3xl flex flex-col h-[calc(100vh-2rem)]">
+            <div class="p-8 flex items-center gap-4">
+                <div class="w-14 h-14 gradient-bg rounded-2xl flex items-center justify-center text-white shadow-2xl">
+                    <span class="material-symbols-outlined text-3xl">shield_person</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-2xl tracking-tight">PPE Detect AI</h1>
+                    <p class="text-xs text-slate-500 font-medium">Enterprise Security</p>
+                </div>
+            </div>
+
+            <!-- User Profile -->
+            <div class="px-6 mb-6">
+                <div class="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                        <span id="user-initials">{{ user.avatar if user else 'AM' }}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold" id="user-name">{{ user.name if user else 'Alex Morgan' }}</p>
+                        <p class="text-xs text-slate-500" id="user-role">{{ user.role if user else 'Safety Manager' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+                <a href="/"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="/live-cameras"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">videocam</span>
+                    <span class="font-medium">Live Cameras</span>
+                </a>
+                <a href="/analytics"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">insights</span>
+                    <span class="font-medium">Analytics</span>
+                </a>
+                <a href="/incident-log"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl gradient-bg text-white shadow-xl">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="font-semibold">Incident Log</span>
+                    <span class="ml-auto bg-white/20 text-white text-xs px-2 py-1 rounded-full font-bold"
+                        id="incident-count">0</span>
+                </a>
+                <a href="/team"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">groups</span>
+                    <span class="font-medium">Team</span>
+                </a>
+
+                <div class="pt-6 pb-2 px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Configuration
+                </div>
+
+                <a href="/settings"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="font-medium">Settings</span>
+                </a>
+                <a href="/user-management"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span class="font-medium">User Management</span>
+                </a>
+            </nav>
+
+            <!-- Bottom Actions -->
+            <div class="p-6 border-t border-primary/10 mt-auto">
+                <button onclick="toggleDarkMode()"
+                    class="w-full p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+                    <span>Toggle Theme</span>
+                </button>
+                <a href="/logout"
+                    class="mt-3 w-full p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1
+                        class="text-3xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
+                        Incident Log</h1>
+                    <p class="text-sm text-slate-500">Track and manage safety incidents</p>
+                </div>
+                <div class="flex gap-3">
+                    <select id="filter-status" onchange="filterIncidents()"
+                        class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
+                        <option value="all">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                    <select id="filter-severity" onchange="filterIncidents()"
+                        class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
+                        <option value="all">All Severity</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                    <button onclick="exportIncidents()"
+                        class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all">
+                        Export Log
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up">
+                    <p class="text-sm text-slate-500">Total Incidents</p>
+                    <h3 class="text-3xl font-bold" id="total-incidents">0</h3>
+                </div>
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="100">
+                    <p class="text-sm text-slate-500">Active</p>
+                    <h3 class="text-3xl font-bold text-green-500" id="active-incidents">0</h3>
+                </div>
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="200">
+                    <p class="text-sm text-slate-500">Resolved</p>
+                    <h3 class="text-3xl font-bold text-slate-500" id="resolved-incidents">0</h3>
+                </div>
+                <div class="glass-card p-6 rounded-2xl" data-aos="fade-up" data-aos-delay="300">
+                    <p class="text-sm text-slate-500">High Severity</p>
+                    <h3 class="text-3xl font-bold text-red-500" id="high-severity">0</h3>
+                </div>
+            </div>
+
+            <!-- Incidents Table -->
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-primary/5 border-b border-primary/10">
+                            <tr>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">ID</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Timestamp</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Type</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Severity</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Camera</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Description</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incidents-table" class="divide-y divide-primary/10">
+                            <!-- Incidents will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="p-4 border-t border-primary/10 flex items-center justify-between">
+                    <p class="text-sm text-slate-500" id="pagination-info">Showing 1-10 of 0 incidents</p>
+                    <div class="flex gap-2">
+                        <button onclick="prevPage()"
+                            class="px-3 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+                            Previous
+                        </button>
+                        <button onclick="nextPage()"
+                            class="px-3 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800 });
+
+        let incidents = [];
+        let filteredIncidents = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Load incidents
+        function loadIncidents() {
+            fetch('/api/incidents')
+                .then(res => res.json())
+                .then(data => {
+                    incidents = data;
+                    applyFilters();
+                });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const statusFilter = document.getElementById('filter-status').value;
+            const severityFilter = document.getElementById('filter-severity').value;
+
+            filteredIncidents = incidents.filter(inc => {
+                if (statusFilter !== 'all' && inc.status !== statusFilter) return false;
+                if (severityFilter !== 'all' && inc.severity !== severityFilter) return false;
+                return true;
+            });
+
+            // Update summary stats
+            document.getElementById('total-incidents').textContent = incidents.length;
+            document.getElementById('active-incidents').textContent = incidents.filter(i => i.status === 'Active').length;
+            document.getElementById('resolved-incidents').textContent = incidents.filter(i => i.status === 'Resolved').length;
+            document.getElementById('high-severity').textContent = incidents.filter(i => i.severity === 'High').length;
+            document.getElementById('incident-count').textContent = incidents.filter(i => i.status === 'Active').length;
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Render table
+        function renderTable() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredIncidents.slice(start, end);
+
+            const tbody = document.getElementById('incidents-table');
+
+            if (pageItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-slate-500">
+                            No incidents found
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = pageItems.map(inc => `
+                    <tr class="table-row">
+                        <td class="p-4 font-mono text-sm">${inc.id}</td>
+                        <td class="p-4 text-sm">${new Date(inc.timestamp).toLocaleString()}</td>
+                        <td class="p-4 text-sm">${inc.type}</td>
+                        <td class="p-4">
+                            <span class="status-badge severity-${inc.severity.toLowerCase()}">${inc.severity}</span>
+                        </td>
+                        <td class="p-4 text-sm">${inc.camera}</td>
+                        <td class="p-4 text-sm max-w-xs truncate">${inc.description || '-'}</td>
+                        <td class="p-4">
+                            <span class="status-badge status-${inc.status.toLowerCase()}">${inc.status}</span>
+                        </td>
+                        <td class="p-4">
+                            <button onclick="updateStatus('${inc.id}')" class="text-primary hover:text-primary/80 transition-all">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update pagination
+            const totalPages = Math.ceil(filteredIncidents.length / itemsPerPage);
+            document.getElementById('pagination-info').textContent =
+                `Showing ${start + 1}-${Math.min(end, filteredIncidents.length)} of ${filteredIncidents.length} incidents`;
+        }
+
+        // Filter incidents
+        function filterIncidents() {
+            applyFilters();
+        }
+
+        // Update incident status
+        function updateStatus(incidentId) {
+            const newStatus = prompt('Enter new status (Active/Resolved):');
+            if (newStatus && (newStatus === 'Active' || newStatus === 'Resolved')) {
+                fetch(`/api/incidents/${incidentId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(() => {
+                    showToast('Incident updated', 'success');
+                    loadIncidents();
+                });
+            }
+        }
+
+        // Export incidents
+        function exportIncidents() {
+            const dataStr = JSON.stringify(incidents, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            const exportFileDefaultName = `incidents_${new Date().toISOString().slice(0, 10)}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+
+            showToast('Incidents exported', 'success');
+        }
+
+        // Pagination
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredIncidents.length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.textContent = 'dark_mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.textContent = 'light_mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Toast
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
+            toast.className = `${colors[type]} text-white px-6 py-3 rounded-xl font-bold mb-2 animate-slideIn`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // Initialize
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = 'light_mode';
+            }
+
+            loadIncidents();
+
+            const socket = io();
+            socket.on('detection_update', () => {
+                loadIncidents();
+            });
+        };
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slideIn {
+            animation: slideIn 0.3s ease forwards;
+        }
+    </style>
+</body>
+
+</html>

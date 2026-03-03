@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPE Detect AI - User Management</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <!-- AOS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ec5b13, #f97316, #fb923c, #f59e0b);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(236, 91, 19, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dark .glass-card {
+            background: rgba(34, 22, 16, 0.7);
+            border-color: rgba(236, 91, 19, 0.2);
+        }
+
+        .user-row {
+            transition: all 0.2s ease;
+        }
+
+        .user-row:hover {
+            background: rgba(236, 91, 19, 0.05);
+        }
+
+        .permission-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .permission-admin {
+            background: rgba(236, 91, 19, 0.2);
+            color: #ec5b13;
+        }
+
+        .permission-editor {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .permission-viewer {
+            background: rgba(107, 114, 128, 0.2);
+            color: #6b7280;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { primary: '#ec5b13' },
+                    fontFamily: { display: ['Space Grotesk', 'sans-serif'] },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-80 glass-card m-4 rounded-3xl flex flex-col h-[calc(100vh-2rem)]">
+            <div class="p-8 flex items-center gap-4">
+                <div class="w-14 h-14 gradient-bg rounded-2xl flex items-center justify-center text-white shadow-2xl">
+                    <span class="material-symbols-outlined text-3xl">shield_person</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-2xl tracking-tight">PPE Detect AI</h1>
+                    <p class="text-xs text-slate-500 font-medium">Enterprise Security</p>
+                </div>
+            </div>
+
+            <!-- User Profile -->
+            <div class="px-6 mb-6">
+                <div class="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-transparent">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                        <span id="user-initials">{{ user.avatar if user else 'AM' }}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold" id="user-name">{{ user.name if user else 'Alex Morgan' }}</p>
+                        <p class="text-xs text-slate-500" id="user-role">{{ user.role if user else 'Safety Manager' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+                <a href="/"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="/live-cameras"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">videocam</span>
+                    <span class="font-medium">Live Cameras</span>
+                </a>
+                <a href="/analytics"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">insights</span>
+                    <span class="font-medium">Analytics</span>
+                </a>
+                <a href="/incident-log"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">history</span>
+                    <span class="font-medium">Incident Log</span>
+                </a>
+                <a href="/team"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">groups</span>
+                    <span class="font-medium">Team</span>
+                </a>
+                <a href="/circulars"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">campaign</span>
+                    <span class="font-medium">Circulars</span>
+                </a>
+
+                <div class="pt-6 pb-2 px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Configuration
+                </div>
+
+                <a href="/settings"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="font-medium">Settings</span>
+                </a>
+
+                <a href="/user-management"
+                    class="flex items-center gap-4 px-4 py-3 rounded-xl gradient-bg text-white shadow-xl">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    <span class="font-semibold">User Management</span>
+                </a>
+            </nav>
+
+            <!-- Bottom Actions -->
+            <div class="p-6 border-t border-primary/10 mt-auto">
+                <button onclick="toggleDarkMode()"
+                    class="w-full p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+                    <span>Toggle Theme</span>
+                </button>
+                <a href="/logout"
+                    class="mt-3 w-full p-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1
+                        class="text-3xl font-bold bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
+                        User Management</h1>
+                    <p class="text-sm text-slate-500">Manage system users and permissions</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="showInviteDialog()"
+                        class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined">person_add</span>
+                        Add User
+                    </button>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-primary/10 flex items-center justify-between">
+                    <h3 class="font-bold">System Users</h3>
+                    <div class="flex gap-2">
+                        <input type="text" placeholder="Search users..."
+                            class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm"
+                            id="search-input" onkeyup="searchUsers()">
+                        <select id="role-filter" onchange="filterUsers()"
+                            class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent text-sm">
+                            <option value="all">All Roles</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Editor">Editor</option>
+                            <option value="Viewer">Viewer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-primary/5 border-b border-primary/10">
+                            <tr>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">User</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Role</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Permission</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Last Login</th>
+                                <th class="text-left p-4 text-xs font-bold text-slate-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table" class="divide-y divide-primary/10">
+                            <!-- Users will be loaded here -->
+                            <tr>
+                                <td colspan="7" class="text-center py-8">
+                                    <div
+                                        class="loading w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto">
+                                    </div>
+                                    <p class="text-slate-500 mt-4">Loading users...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pending Access Requests (Admin Only) -->
+            {% if pending_count is defined and pending_count > 0 %}
+            <div class="glass-card rounded-2xl overflow-hidden mt-6" data-aos="fade-up">
+                <div
+                    class="p-4 border-b border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-orange-500">pending_actions</span>
+                    <h3 class="font-bold text-orange-700 dark:text-orange-300">Pending Access Requests</h3>
+                    <span class="ml-auto bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{{
+                        pending_count }}</span>
+                </div>
+                <div class="divide-y divide-primary/10" id="requests-list">
+                    {% for req in access_requests %}
+                    <div class="p-4 flex items-center justify-between" id="req-{{ req.id }}">
+                        <div>
+                            <p class="font-bold">{{ req.name }}</p>
+                            <p class="text-sm text-slate-500">{{ req.email }} · {{ req.created_at[:10] }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openApproveModal('{{ req.id }}','{{ req.name }}','{{ req.email }}')"
+                                class="gradient-bg text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:shadow-lg transition-all">
+                                Approve
+                            </button>
+                            <button onclick="denyRequest('{{ req.id }}')"
+                                class="bg-red-500/20 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/30 transition-all">
+                                Deny
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Edit Profile Modal -->
+            <div id="edit-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+                onclick="if(event.target===this)closeEditModal()">
+                <div
+                    class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <h3 class="text-xl font-bold mb-1">Edit Profile</h3>
+                    <p class="text-sm text-slate-500 mb-5 font-medium" id="edit-username-label"></p>
+
+                    <!-- Avatar Grid -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold mb-2">Choose Avatar</label>
+                        <div class="grid grid-cols-8 gap-2" id="avatar-grid">
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Selected: <span id="selected-avatar-display"
+                                class="font-bold text-primary"></span></p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Full Name</label>
+                            <input type="text" id="edit-name"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent focus:outline-none focus:border-primary text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Email</label>
+                            <input type="email" id="edit-email"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent focus:outline-none focus:border-primary text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Department / Role Title</label>
+                            <input type="text" id="edit-role"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent focus:outline-none focus:border-primary text-sm">
+                        </div>
+                        <div id="permission-field">
+                            <label class="block text-sm font-bold mb-1">Permission Level</label>
+                            <select id="edit-permission"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none focus:border-primary text-sm">
+                                <option value="Admin">Admin</option>
+                                <option value="Editor">Editor</option>
+                                <option value="Viewer">Viewer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-5">
+                        <button onclick="saveEditProfile()"
+                            class="flex-1 gradient-bg text-white py-3 rounded-xl font-bold hover:shadow-xl transition-all">Save
+                            Changes</button>
+                        <button onclick="closeEditModal()"
+                            class="flex-1 bg-slate-100 dark:bg-slate-700 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approve Access Request Modal -->
+            <div id="approve-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+                onclick="if(event.target===this)document.getElementById('approve-modal').classList.add('hidden')">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+                    <h3 class="text-xl font-bold mb-1">Approve Access Request</h3>
+                    <p class="text-sm text-slate-500 mb-5" id="approve-req-info"></p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Username (login ID)</label>
+                            <input type="text" id="approve-username"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-sm focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Temporary Password</label>
+                            <input type="text" id="approve-password"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-sm focus:outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">Role</label>
+                            <select id="approve-role"
+                                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                                <option value="Viewer">Viewer</option>
+                                <option value="Editor">Editor</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-5">
+                        <button onclick="submitApprove()"
+                            class="flex-1 gradient-bg text-white py-3 rounded-xl font-bold">Create Account</button>
+                        <button onclick="document.getElementById('approve-modal').classList.add('hidden')"
+                            class="flex-1 bg-slate-100 dark:bg-slate-700 py-3 rounded-xl font-bold">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirm-dialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold mb-4" id="confirm-title">Confirm Action</h3>
+            <p class="text-slate-500 mb-6" id="confirm-message">Are you sure you want to delete this user?</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirmDialog()"
+                    class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                    Cancel
+                </button>
+                <button onclick="executeDelete()"
+                    class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800 });
+
+        let users = [];
+        let currentUser = null;
+        let userToDelete = null;
+
+        // Load users
+        function loadUsers() {
+            fetch('/api/team')
+                .then(res => res.json())
+                .then(data => {
+                    users = data;
+                    renderUsers();
+                });
+        }
+
+        // Render users table
+        function renderUsers() {
+            const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || '';
+            const roleFilter = document.getElementById('role-filter')?.value || 'all';
+
+            const filteredUsers = users.filter(user => {
+                const matchesSearch = user.name.toLowerCase().includes(searchTerm) ||
+                    user.email.toLowerCase().includes(searchTerm) ||
+                    user.username?.toLowerCase().includes(searchTerm);
+                const matchesRole = roleFilter === 'all' || user.permission === roleFilter;
+                return matchesSearch && matchesRole;
+            });
+
+            const tbody = document.getElementById('users-table');
+
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-8 text-slate-500">
+                            No users found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredUsers.map(user => `
+                <tr class="user-row">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-white font-bold">
+                                ${user.initials}
+                            </div>
+                            <div>
+                                <p class="font-bold">${user.name}</p>
+                                <p class="text-xs text-slate-500">@${user.username || user.name.toLowerCase().replace(' ', '.')}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-sm">${user.email}</td>
+                    <td class="p-4 text-sm">${user.role}</td>
+                    <td class="p-4">
+                        <span class="permission-badge permission-${user.permission.toLowerCase()}">
+                            ${user.permission}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <span class="permission-badge status-active">Active</span>
+                    </td>
+                    <td class="p-4 text-sm">${user.last_login !== 'Never' ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                    <td class="p-4">
+                        <div class="flex gap-2">
+                            <button onclick="editUser('${user.username || user.name}')" class="p-1 text-primary hover:bg-primary/10 rounded transition-all">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button onclick="confirmDeleteUser('${user.username || user.name}')" class="p-1 text-red-500 hover:bg-red-500/10 rounded transition-all">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Search and filter
+        function searchUsers() {
+            renderUsers();
+        }
+
+        function filterUsers() {
+            renderUsers();
+        }
+
+        // User dialogs
+        function showAddUserDialog() {
+            document.getElementById('dialog-title').textContent = 'Add New User';
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-name').value = '';
+            document.getElementById('user-email').value = '';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-role').value = '';
+            document.getElementById('user-permission').value = 'Viewer';
+            document.getElementById('user-dialog').classList.remove('hidden');
+        }
+
+        function showInviteDialog() {
+            document.getElementById('invite-dialog').classList.remove('hidden');
+        }
+
+        function closeUserDialog() {
+            document.getElementById('user-dialog').classList.add('hidden');
+        }
+
+        function closeInviteDialog() {
+            document.getElementById('invite-dialog').classList.add('hidden');
+        }
+
+        function saveUser() {
+            showToast('User saved successfully', 'success');
+            closeUserDialog();
+            loadUsers();
+        }
+
+        function sendInvite() {
+            const email = document.getElementById('invite-email').value;
+            const role = document.getElementById('invite-role').value;
+
+            if (!email) {
+                showToast('Please enter an email', 'error');
+                return;
+            }
+
+            fetch('/api/invite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, role })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Invite sent successfully!', 'success');
+                        showInviteLink(data.invite_link);
+                        closeInviteDialog();
+                    }
+                });
+        }
+
+        function showInviteLink(link) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-primary text-white p-4 rounded-xl shadow-xl z-50 max-w-md';
+            toast.innerHTML = `
+                <p class="font-bold mb-2">Invite Link Created</p>
+                <div class="flex items-center gap-2 bg-white/20 rounded-lg p-2">
+                    <input type="text" value="${link}" class="bg-transparent text-sm flex-1" readonly>
+                    <button onclick="copyToClipboard('${link}')" class="p-1 hover:bg-white/20 rounded">
+                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                    </button>
+                </div>
+                <p class="text-xs mt-2 opacity-80">Expires in 7 days</p>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 10000);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast('Copied to clipboard!', 'success');
+        }
+
+        // Avatar options
+        const AVATARS = ['👷', '🦺', '🧤', '🪖', '🛡️', '🔧', '👨‍💼', '👩‍💼', '👨‍🔬', '👩‍🔬', '🧑‍💻', '🧑‍🔧', '🧑‍🏭', '👮', '🦺', '⚙️', '🏗️', '🛠️', '🔬', '🔭', '🏭', '🚒', '🧱', '🪝'];
+        let editingUsername = '';
+        let selectedAvatar = '';
+
+        function buildAvatarGrid(currentAvatar) {
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = AVATARS.map(a => `
+                <button type="button" onclick="selectAvatar('${a}')" class="text-2xl p-1.5 rounded-lg hover:bg-primary/10 transition-all border-2 ${a === currentAvatar ? 'border-primary' : 'border-transparent'}" data-avatar="${a}" title="${a}">${a}</button>
+            `).join('');
+            selectedAvatar = currentAvatar || AVATARS[0];
+            document.getElementById('selected-avatar-display').textContent = selectedAvatar;
+        }
+
+        function selectAvatar(a) {
+            selectedAvatar = a;
+            document.querySelectorAll('#avatar-grid button').forEach(btn => {
+                btn.classList.toggle('border-primary', btn.dataset.avatar === a);
+                btn.classList.toggle('border-transparent', btn.dataset.avatar !== a);
+            });
+            document.getElementById('selected-avatar-display').textContent = a;
+        }
+
+        function editUser(username) {
+            const u = users.find(uu => uu.username === username);
+            if (!u) return;
+            editingUsername = username;
+            document.getElementById('edit-username-label').textContent = 'Editing: @' + username;
+            document.getElementById('edit-name').value = u.name || '';
+            document.getElementById('edit-email').value = u.email || '';
+            document.getElementById('edit-role').value = u.role || '';
+            document.getElementById('edit-permission').value = u.permission || 'Viewer';
+            buildAvatarGrid(u.initials);
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        function saveEditProfile() {
+            const payload = {
+                name: document.getElementById('edit-name').value.trim(),
+                email: document.getElementById('edit-email').value.trim(),
+                role: document.getElementById('edit-role').value.trim(),
+                permission: document.getElementById('edit-permission').value,
+                avatar: selectedAvatar
+            };
+            fetch(`/api/users/${editingUsername}/edit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(d => {
+                if (d.success) { showToast('Profile updated!', 'success'); closeEditModal(); loadUsers(); }
+                else showToast(d.message || 'Error', 'error');
+            });
+        }
+
+        // Access request approval
+        let approvingReqId = '';
+        function openApproveModal(id, name, email) {
+            approvingReqId = id;
+            document.getElementById('approve-req-info').textContent = `${name} (${email})`;
+            // Auto-suggest username from email
+            document.getElementById('approve-username').value = email.split('@')[0].replace(/[^a-z0-9]/gi, '.');
+            document.getElementById('approve-password').value = '';
+            document.getElementById('approve-modal').classList.remove('hidden');
+        }
+
+        function submitApprove() {
+            const username = document.getElementById('approve-username').value.trim();
+            const password = document.getElementById('approve-password').value.trim();
+            const role = document.getElementById('approve-role').value;
+            if (!username || !password) return showToast('Username and password required', 'error');
+            fetch(`/api/access-requests/${approvingReqId}/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role })
+            }).then(r => r.json()).then(d => {
+                if (d.success) {
+                    showToast(`✅ Account created for ${username}`, 'success');
+                    document.getElementById('approve-modal').classList.add('hidden');
+                    document.getElementById('req-' + approvingReqId)?.remove();
+                    loadUsers();
+                } else showToast(d.message || 'Error', 'error');
+            });
+        }
+
+        function denyRequest(id) {
+            if (!confirm('Deny this access request?')) return;
+            fetch(`/api/access-requests/${id}/deny`, { method: 'POST' })
+                .then(r => r.json()).then(() => {
+                    showToast('Request denied', 'info');
+                    document.getElementById('req-' + id)?.remove();
+                });
+        }
+
+        function confirmDeleteUser(username) {
+            userToDelete = username;
+            document.getElementById('confirm-dialog').classList.remove('hidden');
+        }
+
+        function closeConfirmDialog() {
+            document.getElementById('confirm-dialog').classList.add('hidden');
+            userToDelete = null;
+        }
+
+        function executeDelete() {
+            if (userToDelete) {
+                fetch(`/api/team/${userToDelete}`, {
+                    method: 'DELETE'
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('User deleted successfully', 'success');
+                            loadUsers();
+                        } else {
+                            showToast(data.message || 'Failed to delete user', 'error');
+                        }
+                    });
+            }
+            closeConfirmDialog();
+        }
+
+        // Dark mode toggle
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.textContent = 'dark_mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.textContent = 'light_mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Toast
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
+            toast.className = `${colors[type]} text-white px-6 py-3 rounded-xl font-bold mb-2 animate-slideIn`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        // Initialize
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = 'light_mode';
+            }
+
+            loadUsers();
+        };
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slideIn {
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</body>
+
+</html>
